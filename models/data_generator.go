@@ -95,6 +95,10 @@ func GetDemographicTargeting() *TargetingDemographic {
 	return d
 }
 
+func GetSecondPrice(price float64) float64 {
+	return math.Floor(price*(rand.Float64()/2+0.5)*1000.0) / 1000.0
+}
+
 func getExpRand(rate float64, max float64) float64 {
 	for i := 0; i < 100; i++ {
 		r := rand.ExpFloat64() * max / rate

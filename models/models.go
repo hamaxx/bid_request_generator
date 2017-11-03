@@ -77,18 +77,20 @@ type TargetingDemographic struct {
 }
 
 type WinNotice struct {
-	Type    string    `json:"type"`
-	BidId   string    `json:"bid_id"`
-	BidTime time.Time `json:"bid_time"`
-	Time    time.Time `json:"time"`
+	Type     string    `json:"type"`
+	BidId    string    `json:"bid_id"`
+	BidTime  time.Time `json:"bid_time"`
+	Time     time.Time `json:"time"`
+	WinPrice float64   `json:"win_price"`
 }
 
 func NewWinNotice(br *BidResponse) *WinNotice {
 	return &WinNotice{
-		Type:    LogTypeWin,
-		BidId:   br.Id,
-		BidTime: br.Time,
-		Time:    br.Time.Add(GetWinNoticeTimeDiff()),
+		Type:     LogTypeWin,
+		BidId:    br.Id,
+		BidTime:  br.Time,
+		Time:     br.Time.Add(GetWinNoticeTimeDiff()),
+		WinPrice: GetSecondPrice(br.BidPrice),
 	}
 }
 
