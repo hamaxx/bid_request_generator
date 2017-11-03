@@ -1,5 +1,22 @@
 package models
 
+var Genders = []ChoiceString{
+	ChoiceString{100, ""},
+	ChoiceString{50, "male"},
+	ChoiceString{55, "female"},
+	ChoiceString{1, "other"},
+}
+var AgeRanges = []ChoiceString{
+	ChoiceString{100, ""},
+	ChoiceString{10, "12-17"},
+	ChoiceString{20, "18-24"},
+	ChoiceString{30, "25-34"},
+	ChoiceString{20, "35-44"},
+	ChoiceString{15, "45-54"},
+	ChoiceString{10, "55-64"},
+	ChoiceString{5, "65+"},
+}
+
 var DeviceTypes = []string{"mobile", "desktop", "tablet"}
 var DeviceOs = map[string][]string{
 	"desktop": []string{"windows 10", "windows 8", "windows 7", "macos", "linux"},

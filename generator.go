@@ -47,7 +47,7 @@ func processTimeHeap(w io.Writer, h *models.TimeLogHeapSync) {
 
 func getRate() (int, int, error) {
 	if len(os.Args) < 2 {
-		return 1, 1, nil
+		return 1000, 1, nil
 	}
 
 	rate, err := strconv.Atoi(os.Args[1])

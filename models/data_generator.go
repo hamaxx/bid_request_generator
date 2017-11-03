@@ -17,8 +17,9 @@ const (
 	bidPriceDist = 10
 	bidPriceMax  = 20.0
 
-	adUrlDist = 10
-	adUrlMax  = 10000
+	campaignDist      = 1
+	maxCampaigns      = 1000
+	maxAdsPerCampaign = 100
 
 	publisherDomainDist = 10
 	publisherDomainMax  = 1000
@@ -41,8 +42,12 @@ func GetBidPrice() float64 {
 	return math.Floor(getExpRand(bidPriceDist, bidPriceMax)*1000.0) / 1000.0
 }
 
-func GetAdUrl() string {
-	adId := int(math.Floor(getExpRand(adUrlDist, adUrlMax)))
+func GetCampaignID() int {
+	return int(math.Floor(getExpRand(campaignDist, maxCampaigns)))
+}
+
+func GetAdUrl(campaignId int) string {
+	adId := campaignId*maxAdsPerCampaign + int(math.Floor(getExpRand(campaignDist, maxAdsPerCampaign)))
 	return fmt.Sprintf("https://ad.zemanta.com/%d", adId)
 }
 
@@ -81,8 +86,17 @@ func GetDeviceTargeting() *TargetingDevice {
 	return d
 }
 
+func GetDemographicTargeting() *TargetingDemographic {
+	d := &TargetingDemographic{}
+
+	d.Gender = weightedChoice(Genders)
+	d.AgeRange = weightedChoice(AgeRanges)
+
+	return d
+}
+
 func getExpRand(rate float64, max float64) float64 {
-	for i := 0; i < 10; i++ {
+	for i := 0; i < 100; i++ {
 		r := rand.ExpFloat64() * max / rate
 		if r > max {
 			continue
@@ -90,4 +104,23 @@ func getExpRand(rate float64, max float64) float64 {
 		return r
 	}
 	return max
+}
+
+func weightedChoice(choices []ChoiceString) string {
+	// Based on this algorithm:
+	//     http://eli.thegreenplace.net/2010/01/22/weighted-random-generation-in-python/
+	sum := 0
+	for _, c := range choices {
+		sum += c.Weight
+	}
+
+	r := rand.Intn(sum)
+
+	for _, c := range choices {
+		r -= c.Weight
+		if r < 0 {
+			return c.Value
+		}
+	}
+	panic("Internal error - code should not reach this point")
 }

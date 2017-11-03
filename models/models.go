@@ -6,6 +6,12 @@ import (
 	"time"
 )
 
+var (
+	LogTypeBid   = "bid"
+	LogTypeWin   = "win"
+	LogTypeClick = "click"
+)
+
 type TimeLog interface {
 	LogTime() time.Time
 }
@@ -15,27 +21,32 @@ type BidResponse struct {
 	Id   string    `json:"id"`
 	Time time.Time `json:"time"`
 
-	Targeting *Targeting `json:"targeting"`
-	Publisher string     `json:"publisher"`
-	AdUrl     string     `json:"ad_url"`
+	Targeting  *Targeting `json:"targeting"`
+	Publisher  string     `json:"publisher"`
+	CampaignID int        `json:"campaign_id"`
+	AdUrl      string     `json:"ad_url"`
 
 	BidPrice float64 `json:"bid_price"`
 }
 
 func NewBidResponse() *BidResponse {
 	now := time.Now()
+	campaignID := GetCampaignID()
+
 	return &BidResponse{
-		Type: "bid",
+		Type: LogTypeBid,
 		Id:   strconv.Itoa(int(now.UnixNano())),
 		Time: now,
 
 		Targeting: &Targeting{
-			Geo:    GetGeoTargeting(),
-			Device: GetDeviceTargeting(),
+			Geo:         GetGeoTargeting(),
+			Device:      GetDeviceTargeting(),
+			Demographic: GetDemographicTargeting(),
 		},
-		Publisher: GetPublisherUrl(),
-		AdUrl:     GetAdUrl(),
-		BidPrice:  GetBidPrice(),
+		Publisher:  GetPublisherUrl(),
+		CampaignID: campaignID,
+		AdUrl:      GetAdUrl(campaignID),
+		BidPrice:   GetBidPrice(),
 	}
 }
 
@@ -44,8 +55,9 @@ func (br *BidResponse) LogTime() time.Time {
 }
 
 type Targeting struct {
-	Geo    *TargetingGeo    `json:"geo"`
-	Device *TargetingDevice `json:"device"`
+	Geo         *TargetingGeo         `json:"geo"`
+	Device      *TargetingDevice      `json:"device"`
+	Demographic *TargetingDemographic `json:"demographic"`
 }
 
 type TargetingGeo struct {
@@ -59,6 +71,11 @@ type TargetingDevice struct {
 	Os   string `json:"os"`
 }
 
+type TargetingDemographic struct {
+	Gender   string `json:"gender"`
+	AgeRange string `json:"age_range"`
+}
+
 type WinNotice struct {
 	Type    string    `json:"type"`
 	BidId   string    `json:"bid_id"`
@@ -68,7 +85,7 @@ type WinNotice struct {
 
 func NewWinNotice(br *BidResponse) *WinNotice {
 	return &WinNotice{
-		Type:    "win",
+		Type:    LogTypeWin,
 		BidId:   br.Id,
 		BidTime: br.Time,
 		Time:    br.Time.Add(GetWinNoticeTimeDiff()),
@@ -88,7 +105,7 @@ type Click struct {
 
 func NewClick(br *BidResponse) *Click {
 	return &Click{
-		Type:    "click",
+		Type:    LogTypeClick,
 		BidId:   br.Id,
 		BidTime: br.Time,
 		Time:    br.Time.Add(GetClickTimeDiff()),
@@ -136,4 +153,9 @@ func (a *TimeLogHeap) Peak() TimeLog {
 type TimeLogHeapSync struct {
 	TimeLogHeap
 	sync.Mutex
+}
+
+type ChoiceString struct {
+	Weight int
+	Value  string
 }
